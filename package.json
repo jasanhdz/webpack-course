@@ -1,0 +1,36 @@
+{
+  "name": "curso-de-webpack",
+  "version": "1.0.0",
+  "description": "\"este es un curso muy divertido\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack index.js --outpout bundle.js --mode development",
+    "build:local": "webpack",
+    "build:external": "webpack --config ./external/webpack.config.js",
+    "build:css": "webpack --config ./css-style-loader/webpack.config.js",
+    "build:extract:css": "webpack --config ./plugin-extract-text/webpack.config.js",
+    "build:multi": "webpack --config ./multiples-entry-points/webpack.config.js",
+    "build:dev": "webpack-dev-server --config ./webpack-dev-server/webpack.config.js",
+    "build:babel": "webpack --config ./babel-loader/webpack.config.js"
+  },
+  "keywords": [
+    "webpack"
+  ],
+  "author": "Jasan Hernández <jasan814@gmail.com> (https://twitter.com/jasan_azael)",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "@babel/preset-es2015": "^7.0.0-beta.53",
+    "babel-loader": "^8.0.5",
+    "babel-polyfill": "^6.26.0",
+    "css-loader": "^2.1.1",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.3.1"
+  }
+}

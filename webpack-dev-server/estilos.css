@@ -1,0 +1,8 @@
+body {
+  background-color: peru;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 40px;
+}
