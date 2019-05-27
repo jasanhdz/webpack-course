@@ -1,0 +1,7 @@
+$borderWhite: 2px + 3px;
+$padding: $borderWhite * 2;
+.Teachers {
+  border: $borderWhite dashed orange;
+  background-color: gray;
+  padding: $padding;
+}

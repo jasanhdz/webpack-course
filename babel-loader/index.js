@@ -1,7 +1,8 @@
 // console.log("Hola mundo, desde Webpack!");
 import './estilos.css';
-import { firstMessage } from './message.js';
+import {firstMessage, delayedMessage} from './message.js';
 
 document.write(firstMessage);
+delayedMessage();
 
-console.log("Hola mundo, desde Webpack en un Webpack.config!");
+// console.log("Hola mundo, desde Webpack en un Webpack.config!");

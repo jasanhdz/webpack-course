@@ -3,7 +3,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   mode: 'development',
-  entry: path.resolve(__dirname, 'index.js'),
+  entry: ['babel-polyfill', path.resolve(__dirname, 'index.js')],
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'js/bundle.js'
@@ -12,7 +12,7 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        // exclude: /(node_modules|bower_components)/,
+        exclude: /(node_modules|bower_components)/,
         use: ExtractTextPlugin.extract({
           fallback: "style-loader",
           use: "css-loader"

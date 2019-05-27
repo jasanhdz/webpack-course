@@ -378,3 +378,462 @@ Con esto tendríamos practicamente el ejericio listo, lo corremos y efectivament
 
 Hasta esté momento cada vez que hacemos un cambio a cualquiera de nuestros modulos nos toca irnos a la terminal y volver a compilar nuestro archivo de webpack, que tal si arreglamos eso, cada vez que haiga un cambio se actualice el archivo automaticamente, y que podamos ver los cambios inmediatamente en el navegador, para eso tenemos 2 cosas, hacerle un watch a nuestra tarea de webpack o crear un Servidor de desarrollo que también haga este watch pero al mismo tiempo que actualice el navegador sin que tengamos que darle F5.
 
+### Soporte a EcmaScript
+
+Hasta el momento ya sabemos configurar webpack con loaders, pluguins y ponerles algunas configuraciones especiales. Ahora vamos a empezar a reforzar todos esos conocimientos con más loaders. Para ello utilizaremos babel, como lo especifica su website es un Javascript compiler, lo que hace es compilar nuestro codigo javascript para que cualquier navegador lo entienda. En el Javascript moderno lo que ocurre es que nosotros tenemos una sintaxis más amigable con el desarrollador, recuerda que webpack = developer experience. Y no lo vamos a quitar de escribir nuestor código gracias a babel que también es developer experience.
+
+Esto es posible gracias **babel-loader**. Pero el loader no viene solo porque el loader nos va a dar el soporte para los archivos de javascript que vamos a importar dentro de nuestro entrypoint o dentro de otros modulos, sino que también necesitamos el core de babel, que sería como babel va a trabajar sobre esos archivos y como los va transpilar para que sea código que lo entienda el navegador, y luego tenemos que decirle que especificaciones de Ecmascript vamos a soportar, por ejemplo queremos soportar EcamaScript2015, EcmaScript2017 o queremos soportar las caracterisiticas que estan completamente en desarrollo. Todo eso se puede configurar y lo hacemos con babel.
+
+Para ello continuaremos trabajando como en los ejercicios anteriores y vamos a crear una nueva carpeta 'babel-loader'. Una vez creada iremos a nuestro editor y lo primero que tenemos que hacer desde ahora es primero configurar la tarea dentro de el package.json que se llamara build:babel
+
+Ahora tenemos que añadir los paquetes y las nuevas dependencias para configurar nuestro webpack.config, primero instalemos las nuevas dependencias:
+
+``npm install -D babel-loader @babel/core @babel/preset-env``
+
+Hasta el día de hoy 24 de Mayo del 2019 ya no funciona si queremos instalar ecmascript con versiones anteriores como ejemplo: ``npm install -D babel-loader babel-preset-es2015...``
+
+- El único paquete que funciona con webpack 4 es @babel/preset-env
+
+- ES2015 ya no funciona con la nueva versión de webpack y npm ahora se usa @babel/preset-env
+
+```javascript
+rules: [
+      {
+        test: /\.js$/,
+        exclude: /(node_modules|bower_components)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ["@babel/preset-env"]
+          }
+        }
+      },
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({
+          // ['style-loader','css-loader']
+          // fallback: "style-loader",
+          use: "css-loader"
+        })
+      }
+    ]
+```
+
+### Utilizando Js moderno en nuestro código
+
+Está es una clase especial donde no necesariamente vamos a aprender a hacer algo nuevo con webpack, si no que vamos a darle sentido a porque utilizamos babel, dentro de nuestra configuración de webpack porque queremos soportar JS moderno y cual va a ser el output que nos  a dar webpack junto con babel. Aquí vamos a escribir un poquito de javascript
+
+- Al diá de hoy Mayo 2019, no se pueden mezclar imports con exports.
+reemplazar import por require.
+
+```javascript
+const renderToDOM = require('./render-to-dom.js');
+const makeMessage = require('./make-message').default;
+
+const waitTime = new Promise((todoOk, todoMal) => {
+  setTimeout(()=> {
+    todoOk('Han pasado 3 segundos, omg');
+    todoMal('Ha ocurrido un error');
+  }, 3000)
+});
+
+module.exports = {
+  firstMessage: 'Hola Mundo desde un Modulo',
+  delayedMessage: async ()=> {
+    const message = await waitTime;
+    console.log(message);
+    // const element = document.createElement('p');
+    // element.textContent = message;
+    renderToDOM(makeMessage(message));
+  },
+}
+```
+Babel 6 ha cambiado un poco la forma en como se exporta por defecto
+
+un código así
+
+```javascript
+function makeMessage(msg) {
+  const element = document.createElement("p");
+  element.textContent = msg;
+  return element;
+}
+
+export default makeMessage;
+```
+se exporta así:
+
+```javascript
+const makeMessage = require("./makeMessage").default;
+```
+
+### Soporte de imagenes 
+
+hasta esté momento ya soportamos css, javascript y ahora vamos a seguir añadiendole soporte a más assets que seguramente vas a necesitar dentro tu proyecto que tal si le damos soporte a imagenes en este momento.
+
+Para soportar imágenes requerimos un nuevo loader, para efectos del curso usaremos el url-loader.
+Este loader es especial porque es soportado por los creadores de Webpack.
+
+install 
+``npm install url-loader --save-dev``
+
+Ahora vamos a configurar nuestra carpeta, vamos a copiar la carpeta de 'babel-loader' y le vamos a poner 'url-loader-images' 
+
+Una vez listo esto, tenemos que configurar nuestra tarea de npm, nuestro comando para que corra nuestro ejercicio. que sería:
+``"build:images": "webpack --config ./url-loader-images/webpack.config.js"``
+
+Ahora si que puedo correr esté proyecto y esté loader pero no sin más con configurarlo, para ello vamos a ir a la carpeta de url-loader-images y a nuestro webpack.config.
+
+Ahora vamos a configurar nuestro loader. ¿Como se configuran los loader?
+
+- Se configuran dentro de module: { rules: [ {} ] } acá vamos a poder configurar nuestro nuevo loader
+
+**Recordemos que: los loaders no hace falta que los importemos solo los tenemos que cargar dentro del key de rules: de nuestro webpack.config** y reciben **2 keys** importantes; el de **test** y el de **use** en el de use: le vamos a decir que tipo de loader vamos a utilizar y en el de test le vamos a decir que tipos de archivos van a usar ese loader: aquí va nuestra expresión regular.
+
+Qué tal si no solo soportamos archivos de jpg sino que soportamos más tipos archivos, pero en esté caso podemos poner los diferentes tipos de imagenes que van a utilizar esté loader, para eso en use: tenemos que colocar nuestro loader no simplemente con: url-loader, si no que requiere una configuración especial y ya aprendimos que configurando babel-loader, las configuraciones especiales que requiera nuestro loader se van a poner otra vez entre llaves y adentro de esto vamos a poder poner nuestras configuraciones
+
+```javascript
+{
+  test: /\.(jpg|png|gif)$/,
+  use: {
+    loader: 'url-loader',
+    options: {
+      limit: 100000,
+    }
+  }
+}
+```
+Si queremos soportamos más tipos de archivos como por ejemplo png o gif. Para ello nosotros podemos colocar todos los tipos de imagenes seperados por el simbolo de paip '|'.
+
+La opción más importante que tiene nuestro loader es una que se llama **limit**, que es decirle hhasta que limite de peso de archivo va a ser una transformación. Porque si vamos a la página de url-loader nos explica que lo que va a hacer url-loader es convertir nuestros archivos a `base64`. 
+
+¿Qué quiere decir estó?
+que no va a transportar las imagenes de lado a lado y nos va a dar una nueva ruta sino que lo que va a hacer por defecto es convertir las imagenes a base64. Lo que significa es que las convierte totalmente a código y las pondra junto con nuestros archivos javascript y lo a hacer solo con la condición de que no peseen más del limite que coloquemos en el key ``limit:`` **El limite es en Bytes** 
+
+Para probar usaremos una imagen de 99kb y el limite lo estableceremos de 100kb. Si la imagen pasará del limite que establecimos lo que hará url-loader será exportar la imagen los assets externos a la carpeta en esté caso de dist, y ahí colocará la imagen pero sin ``base64``.
+
+Ahora iremos a nuestro index.js para importar nuestra imagen y vamos a ver que tan bien funciona estó
+
+Otra cosa adicional y para terminar esté ejercicio podemos cargar también las imagenes desde un css obviamente nuestros estilos.css y desde acá podemos importar nuestra imagen y cambiarle por ejemplo el background. Por supuesto que lo podemos hacer porque ahora ya soportamos los archivos de imagen. Solo basta con cargar la imagen desde ruta absoluta.
+
+### Soporte de fuentes en webpack
+
+Otro de los assets valisos que vas a utilizar en todos tus proyectos es personalizar las fuentes porque quieres una fuente en todos tus textos diferente o porque quieres añadir algunos nuevos iconos para que se vean bien dentro del navegador. Para eso te voy a presentar [FontSquirrel](https://www.fontsquirrel.com). Qué es un repositorio de fuentes gratuitos que los puedes utilizar incluso hasta para uso comercial. 
+
+En esté ejemplo buscaremos openSans que es con la que probaremos esté ejemplo, de igual maner apuedes elegir la de tu agrado. Cuando lo busques podemos encontrarnos TTF para descargarlo en el sistema y si le damos click a la fuente encontraremos algo mucho más divertido que es poder barja el **Webfont kit** que es la forma de soportar esa fuente pero en el navegador y evitar que tus usuarios la tengan netamente instalada. Asi que vamos a darle check a todos los formatos(Porque son todos los formatos que van a funcionar en cualquier navegador). Y vamos a descargar nuestro paquete de fuentes.
+
+Si abrimos nuestro archivo veremos que tenemos una carpeta por cada peso de está fuente. En esté caso vamos a utilizar solo la regular. Y vemos que adentro tenemos las fuentes y adentro tenemos una hoja de estilos. Está hoja de estilos es la que nos interesa así que vamos a abrirla para copiar todo su **@font-face{}** y lo vamos a pegar en nuestra hoja de estilos.
+
+Ahora iremos a nuestra carpeta del proyecto y vamos a duplicar nuestra carpeta de url-loader-images y ahora crearemos una con el nombre de url-loader-fonts. Ahora vamos a abrir nuestro package.json, lo primero que tenemos que hacer es crear nuestra tarea para que nos haga el bunddle. 
+
+Bien lo siguiente que tenemos que hacer es configurar nuestro webpack.config, Para dar soporte a nuestros tipos de fuentes no tenemos que hacer algo especial con el url-loader ya que como es un archivo normal así como binario lo podemos cargar como una url, podemos darle soporte en está misma linea. Ejemplo
+```javascript
+{
+  test:/\.(jpg|png|gif|woff|eot|ttf|svg)$/,
+  use: {
+    loader: 'url-loader',
+    options: {
+      limit: 100000,
+    }
+  }
+}
+```
+Lo siguiente que tenemos que hacer es utilizar nuestras fuentes así que vamos a ir a nuestra hoja de estilos.css y es ahi donde tenemos que copiar el font-face y especificar la ruta de los archivos de fuente que vamos a utilizar, también debemos usarlos para probar que se carguen correctamente.
+
+<h3 style='color:red;'>Importante</h3>
+**Si sus fuentes pesan más de lo que tienen especificado en el url-loader tienen que instalar file-loader y listo. Más adelante vamos a aprender a usarlos en conjunto con un par de configuraciones extra.**
+
+### Soporte de Videos
+
+Seguimos reforzando nuestro conocimiento con url-loaders soportando más tipos de archivos y en esté caso vamos a traer a la mesa los videos. Para esot simplemente vamos a seguir con nuestro proyecto. Vamos a duplicar la carpeta que teniamos de url-loader-fonts y la vamos a llamar url.loader-video. Para este ejemplo usaremos 2 videos uno en mp4 y otro webm. Vamos a colocar los videos dentro de nuestros src en una carpeta videos.
+
+Ahora tenemos que darle soporte dentro de nuestro archivo de webpack.config.
+Procedamos a realizar lo que hacemos con todos los loader en nuestro editor de código.
+
+1. Primero Generar la tarea para este ejercicio. 
+``"build:video": "webpack --config ./url-loader-video/webpack.config.js"``
+2. Procedemos a editar nuestro webpack.config de esta carpeta de video.
+
+En esté caso vamos a hacer un nuevo loader muy parecido a loader que teniamos.
+
+```javascript
+{
+  test: /\.(mp4|webm)$/,
+  exclude: /(node_modules|bower_components)/,
+  use: {
+    loader: 'url-loader',
+    options: {
+      limit: 100000,
+      name: 'videos/[name].[hash].[ext]'
+    }
+  }
+}
+```
+####¿Porque agregamos un nuevo loader si ya teniamos uno igual?
+
+Bien la respuesta es muy simple, apesar de que estamos utilizando el mismo loader, nosotros queremos guardar algún tipo de archivo en especial en una dirección especifica, entonces lo más recomendable es modularizar la ruta de mis archivos compilados usando la propiedad de *name*, Si queremos modularizar nuestro proyecto poniendo distintos tipos de archivos en lugares diferentes podemos agregar multiples loaders unicamente cambiando el tipo de archivo y la ruta donde deseamos guardarlos.
+
+Adicionalmente ocupamos 2 nuevos flags. que son [hash] y [ext]. 
+[hash]: Nos ayuda a agregarle un valor random despues del nombre del archivo para que cada vez que compilemos nuestros archivos el hash cambie y de ese modo eliminamos el cache del navegador, pero si no lo queremos eliminar podemos no ponerselo.
+[ext]: Con esto me va a exportar el archivo con la extensión que tiene por defecto.
+
+Ahora lo único que nos falta para terminar el ejercico es utilizar nuestros videos, para ello vamos a importar nuestros videos a nuestro index.js y los vamos a hacer un render a nuestro DOM.
+
+### Soportando archivos JSON
+
+En la nueva version de WP (webpack >= v4.0.0) ya no hace falta usar el json-loader, ya que webpack lee los archivos json por defecto.
+
+
+### Configuración para React.js
+
+Practicamente todos nuestros proyectos hechos con javascript moderno están hecho bajo una librería o framework principal que te guste utilizar en tus proyectos, en esté caso a mi me gusta utilizar React, entonces tenemos que darle soporte a JSX que es el lenguaje raro que utiliza react para hacer sus cosas.
+
+Esto lo podemos también configurar como un preset de babel, recordemos que interpretamos Ecmascript 2016 o 2015 con babel, también podemos hacer lo mismo para react, si vamos a la documentación de [babel.js](https://babeljs.io/docs/en/plugins/) podemos ver que además de tener configuraciones para es2015, es2016, es2017, tenemos la configuración para react así es como nostros podemos simplmente instalarla, poner esa configuración, ese preset y empezar a escribir react.js   
+
+install react
+``
+npm install --save-dev @babel/preset-react
+``
+babel-preset-react … al igual que las usadas hasta el momento en el curso, es una dependencia de desarrollo, por eso se instala con –save-dev o -D … esto le dice a npm que al momento de generar el paquete final no las incluya como parte de los archivos de distribución.
+
+Esté es el preset para react, cuando npm haga su trabajo estaremos listos para empezar a trabajr con react.
+Ya le dimos el soporte para react para que se entienda el lenguaje en el cual están escritas algunas cosas en react.jsx. **Pero ahora que vamos a hacer una pequeña aplicación con react y react-dom para imprimirlos en pantalla.** De los cuales son también 2 dependencias pero a diferencia de las anteriores y practicamente todas las que hemos instalado a lo largo del curso, no van a ser dependencias de desarrollo, si no que van a ser dependencias para nuestro codigo, dependecias normales.
+
+install react-dom
+``
+npm install react react-dom --save
+``
+react y react-dom … a diferencia de las dependencias usadas hasta el momento en el curso, se instala sólo con –save o -S para indicar a npm que al momento de generar el paquete final deberá incluirlas como parte de los archivos de distribución. Ya que el código de nuestro programa las usará durante la ejecución en producción.
+
+Ahora que ya tenemos react instalado, iremos a nuestro package.json para agregar nuestra tarea la cual será: 
+``
+"build:react": "webpack --config ./react/webpack.config.js"
+``
+Como lo hemos echo en los ejercicios anteriores vamos a crear una nueva carpeta nombre react, la cual es una copia de la carpeta json-loader pero ahora le agregaaremos el preset de react.
+
+Solo tengo que configurar esté nuevo preset ya que donde vamos a hacer archivos javascript, solo vamos a agregarle otro preset para que interprete los archivos en react.js o por lo menos el lenguaje que está dentro de react que es JSX. simplemente agregamos 'react', no hace falta poner preset-react ni nada por el estilo.
+
+```javascript
+{
+  test: /\.js$/,
+  exclude: /(node_modules|bower_components)/,
+  use: {
+    loader: 'babel-loader',
+    options: {
+      presets: ["@babel/preset-env", "@babel/react"]
+    }
+  }
+}
+```
+Ahora ya podemos empezar a crear nuestra aplicación con react.js. Empecemos:
+Primero en nuestro index.js vamos a importar react y react-dom, pero vamos a importar solo la funcion render de react-dom, y ahora ya podemos empezar a crear un componente.
+
+### Estilos con Sass (sass-loader)
+
+En todos los proyectos que están hechos con html, css y javascript, al final del día ese css que le da todo el color y la forma a tus proyectos puede venir generado desde otroa herramienta llamados preprocesadores o postprocesadores como por ejemplo: Sass, Stylus, Less, PostCss. 
+
+En esta parte nos toca darle soporte a Sass, para ello tenemos que instalar el loader de sass
+
+instalación:
+``
+npm install css-loader --save-dev
+``
+Una vez instalado y como lo venimos haciendo: 
+1. Crearemos una nueva carpeta llamada sass-loader generada con la copia del ejercicio anterior que es react.
+2. Despues tenemos que generar la tarea en el package.json 
+``
+"build:sass": "webpack --config ./sass-loader/webpack.config.js"
+``
+3. Ahora tenemos que agregar el loader en el webpack.config
+```javascript
+{
+  test: /\.scss$/,
+  exclude: /(node_modules|bower_components)/,
+  use: ExtractTextPlugin.extract({
+    fallback: "style-loader",
+    use: ["css-loader", "sass-loader"]
+  })
+}
+```
+4. Además de agregar el loader y de haber instalado Sass. Sass debe ser compilado en nuestro sistema, es decir tenemos el soporte de archivos sass, pero esos archivos no los puede leer el navegador y para ello debemos de transformar esos archivos a css para que el navegador los pueda entender. Para ello tenemos que instalar el Core de Sass, y esto se hace muy sencillo
+
+instalación del Core de Sass:
+``
+npm install node-sass -D
+``
+Una vez instalado ya podemos compilar nuestros archivos y se debería de ejecutar correctamente.
+
+### Soporte a Stylus(stylus-loader)
+
+En está clase vamos a darle soporte a stylus.
+
+1. Primero tenemos que instalar nuestro loader que es 'stylus-loader', junto con su core, el cual convierte o compila el lenguaje stylus a css
+
+La dependencia core simplemente es stylus.
+instalacion de stylus:
+``
+npm install --save-dev stylus-loader stylus
+``
+2. Tenemos que agregar nuestra tarea al package.json 
+``
+"build:stylus": "webpack --config ./stylus-loader/webpack.config.js"
+``
+3. Ahora crearemos una nueva carpeta llamada stylus-loader para este ejercicio, la cual fue duplicada de sass-loader. 
+
+4. Aquí vamos a agregar nuestro loader a nuestro webpack.config
+
+Aparte de darle soporte a stylus y darle soporte a cualquier tipo de preprocesador, podemos configurarlos e ir un poquito más allá de eso, podemos añadirle opciones a estas configuraciones, en el caso de stylus también podemos hacerlo. Para ello vamos a ir nuestro loader de stylus donde vamos a aprender a extender los poderes de stylus gracias a otras cosas y ponerle una configuración extra, no solamente darle lo básico de stylus.
+
+Para esto vamos a cortar el loader de sass y vamos a cambiar el texto por un objeto, primero vamos a tener el loader de css-loader, y luego vamos a tener otro loader, donde el objeto loader va a tener opciones como ya lo habiamos echo antes pero un poco diferente. Vamos a tener un key que será nuestro loader del preprocesador y como segundo key pondremos las options.
+
+Una de sus opciones es poder traer modulos externos que apoyen a stylus mixeds como le llaman dentro de los preprocesadores y estos mixeds los podemos traer de proyectos externos con que ya hallan compartido en github, o los podemos crear nosotros mismos. En esté caso vamos a traer 2 mixeds que ya son muy populares dentro de la comunidad de stylus. Uno se llama **nib** y otro **rupture**
+
+Lo que va a realizar **nip** es un conjunto de mixeds que va ayudar para que algunos prefijos de cosas que no entiendan navegadores viejos funcionen bien y lo que va a realizar **rupture** es darnos mixends para que podamos utilizar y demos soporte a mediaquerys con una sintaxis mucho más sencilla.
+```javascript
+{
+  test: /\.styl$/,
+  exclude: /(node_modules|bower_components)/,
+  use: ExtractTextPlugin.extract({
+    fallback: "style-loader",
+    use: [
+      "css-loader", 
+      {
+        loader: "stylus-loader",
+        options: {
+          use: [
+            require('nib'),
+            require('rupture')
+          ]
+        }
+      }
+    ]
+  })
+}
+
+```
+Otra cosa aparte de utilizarlos así nadamas es que los podemos autoimportar dentro de nuestro proyecto y para hacer eso, es una segunda option de nuestro loader de stylus que se llamá **import**,
+el import también puede ser una lista o ser nadamas uno.
+
+```javascript
+{
+  test: /\.styl$/,
+  exclude: /(node_modules|bower_components)/,
+  use: ExtractTextPlugin.extract({
+    fallback: "style-loader",
+    use: [
+      "css-loader", 
+      {
+        loader: "stylus-loader",
+        options: {
+          use: [
+            require('nib'),
+            require('rupture')
+          ],
+          import: [
+            '~nib/lib/nib/index.styl',
+            '~rupture/rupture/index.styl'
+          ]
+        }
+      }
+    ]
+  })
+}
+```
+Acá tenemos que ponerle esas rutas de donde están ubicados los archivos que quiero autoimportar dentro de mis estilos y para esto tengon utilizar un simbolo '~', esté simbolo es un alias para entrar a la carpeta de node_modules donde estamos instalando todo.
+
+Ahora que las importamos procedemos a instalar los mixeds que acabamos de configurar.
+``
+npm install nib rupture --save-dev
+``
+### Estilos con Less (less-loader)
+
+Como todos los demás loader tenemos que instalar less-loader para poder entender los archivos de less y también tenemos que instalar el core de less para que transpile nuestro código de less a css.
+
+instalación de less:
+``
+npm install less-loader less --save-dev
+``
+2. Ahora procedemos a crear nuestra tarea en nuestro package.json 
+``
+ "build:less": "webpack --config ./less-loader/webpack.config.js"
+``
+3. Ahora crearemos nuestra carpeta de esté ejercicio llamada less-loader
+4. Agregaremos nuestro loader para soportar archivos less con una pequeña configuración extra:
+```javascript
+{
+  test: /\.less$/,
+  exclude: /(node_modules|bower_components)/,
+  use: ExtractTextPlugin.extract({
+    fallback: "style-loader",
+    use: ["css-loader", {
+      loader: "less-loader",
+      options: {
+        noIeCompat: true,
+      }
+    }]
+  })
+}
+```
+5. Ahora procedemos a crear nuestros archivos less e importarlo a nuestro index.
+
+### Estilos con PostCSS
+
+PostCss es nuestra última alternativa para transformar estilos, popular en el mercado, con la cual podemos procesar nuestros estilos. Y de hecho PostCSS es la manera mas moderna de hacerlo, si arrancará un proyecto hoy lo haría con PostCSS.
+
+Como en anteriores clases lo que tenemos que hacer es instalar el core de postcss y el loader de postcss y luego crear algunas configuraciones extras de post. Post tiene algo particular, donde tu configuras como funciona tu postprocesador, pero estás configuraciones son como pequeños modulos que tu le agregas a post y esos pequeños modulos también tenemos que instalarlos.
+
+Tenemos un core de css que va a manejar estos modulos, pero no también tenemos que instalarlos, imaginemos esto como si fuera un mini-webpack pero solo dedicado a los estilos. Ahora si pasemoslo a nuestro proyecto.
+
+Pasos:
+1. Copiemos la carpeta del proyecto anterior y renombremos la copia de este con el nombre de nuestro ejercicio 'postCss-loader'.
+2. Crear nuestra tarea en npm en nuestro packages.json
+``
+"build:postcss": "webpack --config ./postcss-loader/webpack.config.js"
+``
+3. Tenemos que instalar el core de post y el loader de postcss 
+instalación:
+``
+npm install -D postcss postcss-loader 
+``
+4. Configuramos nuestro loader de postcss en nuestro webpack.config junto con el css-loader
+```javascript
+{
+  test: /\.css$/,
+  exclude: /(node_modules|bower_components)/,
+  use: ExtractTextPlugin.extract({
+    fallback: "style-loader",
+    use: [
+      {
+        loader: "css-loader",
+        options: {
+          modules: true,
+          importLoaders: 1
+        }
+      },
+      'postcss-loader'
+    ]
+  })
+},
+```
+
+Si haz trabajado con postcss sabras que los formatos de postcss o porque es tan popular es porque quiere asemejarce más a lo que es css en vez de alejarse y a hacer un nuevo lenguaje quiere asemjarce a como css haría las cosas pero aún así agregarle algunos features como las variables, los prefijos y todo estó que ya haciamos antes. 
+
+####Configuración de plugin para PostCSS
+
+Algo que siempre tenemos que tener cuando vamos a manejar un proyecto con postcss es un archivo de configuración, recuerdan que postcss es como un mini-webpack pero solo para css, entonces requiere su archivo de configuración donde le vamos a decir que pluguins va a adquirir, que features, para darle poderes a css le vamos a incluir, y ese archivo de configuración lo ponemos a la misma altura donde estamos importando nuestros archivos de css.
+
+En la carpeta css vamos a añadir un nuevo archivo y este archivo se tiene que llamar 'postcss.config.js', y acá tenemos que configurarlo similar como con nuestro webpack.config, dentro de esto tenemos que poner que configuración.
+
+```javascript
+module.exports = {
+  plugins: {
+    'poscss-cssnext': {}
+  }
+}
+```
+Pero en la configuración colocamos un plugin, esto quiere decir que también tenemos que instalarlo y lo hacemos de la siguiente manera:
+
+instalación:
+```npm install postcss-cssnext``
+
+Una vez hecho estó nuestro loader ya podra leer los archivos css con postcss.
