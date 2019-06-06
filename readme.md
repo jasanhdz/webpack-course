@@ -27,9 +27,16 @@
   - [Configuración de Plugin para PostCSS](#configuración-de-plugin-para-postcss)
 - [Prevenir Código Duplicado](#prevenir-código-duplicado)
 - [Eligiendo dependencias comunes](#eligiendo-dependencias-comunes)
+- [Optimizando el paquete de dependencias comunes](#optimizando-el-paquete-de-dependencias-comunes)
+- [Enlazando un Dynamic Link Library (DLL)](#enlazando-un-dynamic-link-library-dll)
+- [Cargando módulos de forma Asincrona](#cargando-módulos-de-forma-asincrona)
+- [Llevando un proyecto real a Webpack - preparación del entorno](#llevando-un-proyecto-real-a-webpack-preparación-del-entorno)
+  - [Configurando webpack.config del proyecto](#configurando-webpackconfig-del-proyecto)
+  - [Configuración para entornos de Producción.](#configuración-para-entornos-de-producción)
 
-
+---
 ## Introduction 
+
 Solo parte de un archivo JavaScript por página y en ella empieza a importar todos los modulos de tu aplicación, que tal si quieres escribir el código más limpio usando lo último de de JavaScript y también babel para darle soporte a todos los navegadores y ya entrados en gastos, porque no usar: Sass, Less, Styluss o PostCSS para generar nuestra hoja de estilos, por supuesto que puedes hacerlo con webpack, que tal si quieres hacer que se recargue el navegador al mismo tiempo cuando recargues tu código, con webpack es posible, y que tál si cuando estés listo para enviar tus cambios a producción, Comprimimos todo estó al máximo para que nuestra aplicación cargue como el rayo, nuestros usuarios estarán felices con el resultado y tú estarás orgulloso de todo el proceso, webpack es sin duda la herramienta con la que desarrollaras tu experiencia como desarrollador.
 
 <div align="right">
@@ -958,7 +965,7 @@ module.exports = {
 Pero en la configuración colocamos un plugin, esto quiere decir que también tenemos que instalarlo y lo hacemos de la siguiente manera:
 
 instalación:
-```npm install postcss-cssnext``
+``npm install postcss-cssnext``
 
 Una vez hecho estó nuestro loader ya podra leer los archivos css con postcss.
 
@@ -1152,7 +1159,11 @@ En lo que tiene que ver con nuestro archivo dll creó que ya estamos perfectos, 
 
 Una vez compilada nuestra tarea nos genera un archivo modules.js y ese archivo está dentro de 'dist/js/modules.js' el cúal peso 903kb ahí tenemos todo nuestro código de react y react-dom. Y lo siguiente que ha generado es un archivo JSON, nuestro manifest donde le está diciendo donde esta ubicada todas las cosas que necesita la librería para enlazarse con nuestro código, realmente no necesitamos entender que está ocurriendo por acá, simplemente son referencias a rutas.
 
-### Enlazando un Dynamic Link Library (DLL)
+<div align="right">
+  <small><a href="#tabla-de-contenido">🡡 volver al inicio</a></small>
+</div>
+
+## Enlazando un Dynamic Link Library (DLL)
 
 Ya tenemos nuestro paquete de dependencias comunes, nuestro dll o dinámic link library, y ahora tenemos que enlazarlos con nuestros entrypoints originales con nuestro home, contact, y todos los que tengamos para que lo consuman, y esto lo hacemos desde nuestro webpack.config.js y dentro de estó vamos a consumirlo utilizando originalmente el plugin, recuerdan que viene de webpack y está es la segunda parte del plugin.
 
@@ -1178,11 +1189,15 @@ Veamos aquí que para que se enlase este archivo de modulos con nuestro archivo 
 **¿Y como lo hace?** La única manera de hacerlo es que esté archivo tenga alguna variable global dentro del navegador, así que cual es esa variable global dentro del navegador: _Es el nombre que le pusimos y como estamos externalizando esté proyecto_ y se llamá **'modules'**. 
 En la configuracíon del webpack.dll.config.js en el output con el key **'library:'** le estaba diciendo a nuestro paquete que exporte una variable global que se llamé como el nombre que tiene esté entrypoint y nuestro entrypoint se llama 'modules'. Y es por eso que en el navegador tenemos una variable global que se llama modules y de esa forma home tiene manera de hacer referencia a nuestro dll que al final del día se llama 'modules.js'
 
+<div align="right">
+  <small><a href="#tabla-de-contenido">🡡 volver al inicio</a></small>
+</div>
+
 ---
-### Cargando modulos de forma Asincrona.
+## Cargando módulos de forma Asincrona.
 ---
 
-**<span style="color:blue;">¿Porque queremos hacer esto?**</span>
+###<span style="color:blue;">¿Porque queremos hacer esto?</span>
 
 A pesar de comprimir nuestros modulos hay librerias que no se pueden omitir de la primera carga del navegador. Pero que tal si vas a navegar a una nueva página, si quieres cargar modulos recien cuando hagas la navegación o cuando hagas determinada acción o por lo menos cargar algún polyfil con cierta condición del navegador por ejemplo: el navegador no soporta cierta cantidad de alguna librería que estamos utilizando como internalización con el modulo intel, y si no lo soporta queremos cargar una librería pero no quiero sumarle ese peso a el bundle de archivos comunes ni al bundle de los entrypoints normales sino quiero cargarla si y solo sí se cumple esa condición porque no queremos cargarle ese peso a los clientes que si tienen un navegador decente y si soportan esa api del navegador. Para esto tenemos los imports dinamicos asincronos y la parte donde vemos que ya no solo es un paquete con todo incluido sino que ya podemos ir cargando cosas en demanda por eso webpack es increible.
 
@@ -1249,8 +1264,13 @@ output: {
   }
 ```
 
-### Llevando un proyecto real a Webpack - preparación del entorno
+<div align="right">
+  <small><a href="#tabla-de-contenido">🡡 volver al inicio</a></small>
+</div>
 
+
+## Llevando un proyecto real a Webpack - preparación del entorno
+---
 Ahora ya sabes todo lo que necesitas para llebar tus proyectos a webpack que tal si empezamos con un ejercicio y vamos a llebar un proyecto real que hicimos en el curso de animaciones que se llama invie, donde hicimos un proyecto que si teclamos a invie este se empieza a animar, el cual esta construido con react.
 
 Como se hizo con rect y lo que se pretendía enseñar eran las animaciones hicimos todo el bundlerplay y toda la configuracion de webpack para que compilen los archivos Ecmascript6, etc. **Lo hicimos con un proyecto que se llama create-react-app**, con estó podemos empezar con un boilerplay **para empezar nuestra apliacion con react** y sin tener que estar configurando tantas cosas y para ser más especificos **sin tener que estar lideando con webpack**.
@@ -1385,6 +1405,10 @@ Expliquemos brevemente los keys:
 5. *DevServer*: este key solo es necesario si estamos ocupando webpack-dev-config ya que esta es la configuración de nuestro servidor de estáticos, la configuración es muy basica aunque la más importante de entender es el ``contentBase: path.join(__dirname, '/dist/'),`` que es donde va a hacer watch de los archivos que estan cambiando. en este caso ponemos dist porque ahi quiero que actualice si escucha cambios. Otro importante es ``publicPath: path.resolve(__dirname, '/'),`` que lo que hace es saber en que directorio deseamos correr el servidor.
 6. *Module:* este key es un objeto que recibira reglas o **rules** y adentro de rules pondremos todos nuestros loaders que vallamos a querer agregar.
 7. Por último sería *Plugins*: es la parte donde vamos a agregar plugins espaciales de webpack.
+
+<div align="right">
+  <small><a href="#tabla-de-contenido">🡡 volver al inicio</a></small>
+</div>
 
 ### Configuración para entornos de Producción.
 
@@ -1528,3 +1552,6 @@ Package.json
 
 Es importante tener en cuanta que demos usar el "clean-webpack-plugin@0.1.17" ya que la actualización no permite poner la configuración que establecimos acá.
 
+<div align="right">
+  <small><a href="#tabla-de-contenido">🡡 volver al inicio</a></small>
+</div>
