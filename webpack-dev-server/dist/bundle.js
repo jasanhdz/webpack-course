@@ -150,7 +150,7 @@ eval("\nvar content = __webpack_require__(/*! !../node_modules/css-loader/dist/c
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _estilos_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./estilos.css */ \"./webpack-dev-server/estilos.css\");\n/* harmony import */ var _estilos_css__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_estilos_css__WEBPACK_IMPORTED_MODULE_0__);\n// console.log(\"Hola mundo, desde Webpack!\");\r\n\r\n\r\n//document.write(\"Hola\");\r\ndocument.write(\"Hola Mundo desde Webpack!!\");\r\n\r\nconsole.log(\"Hola mundo, desde Webpack en un Webpack.config!\");\n\n//# sourceURL=webpack:///./webpack-dev-server/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _estilos_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./estilos.css */ \"./webpack-dev-server/estilos.css\");\n/* harmony import */ var _estilos_css__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_estilos_css__WEBPACK_IMPORTED_MODULE_0__);\n// console.log(\"Hola mundo, desde Webpack!\");\r\n\r\n\r\n//document.write(\"Hola\");\r\ndocument.write(\"Hola Mundo desde Webpack!!\");\r\n// document.write(\"Hola desde mi casa putos\");\r\nconsole.log(\"hola\")\r\n\r\nconsole.log(\"Hola mundo, desde Webpack en un Webpack.config!\");\n\n//# sourceURL=webpack:///./webpack-dev-server/index.js?");
 
 /***/ })
 
